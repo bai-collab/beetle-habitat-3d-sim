@@ -6,6 +6,14 @@
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans TC",sans-serif;background:#f3f6fb;color:#203040}.app{display:grid;grid-template-columns:330px 1fr;min-height:100vh;gap:14px;padding:14px}.panel,.stage{background:#fff;border-radius:16px;box-shadow:0 10px 28px #274a7714}.panel{padding:18px;overflow:auto}.stage{position:relative;overflow:hidden;background:linear-gradient(#fbfdff,#eef4ff)}#view{position:absolute;inset:0}h1{font-size:1.25rem;margin:0 0 8px}h2{font-size:1rem;margin:18px 0 8px}.muted{color:#60758c;font-size:.92rem;line-height:1.5}.tag{display:inline-block;padding:4px 10px;border-radius:999px;background:#e9f2ff;color:#1762c8;font-weight:700;font-size:.84rem}.ctrl{margin:12px 0}.ctrl label{display:flex;justify-content:space-between;font-weight:700;font-size:.92rem;margin-bottom:5px}.ctrl input[type=range]{width:100%}.checks label{display:block;margin:8px 0;font-weight:600}button{border:0;border-radius:9px;padding:9px 11px;margin:4px 4px 0 0;background:#e6f0ff;color:#1758ad;font-weight:700;cursor:pointer}.hud{position:absolute;left:14px;top:14px;background:#ffffffdd;padding:10px 12px;border-radius:12px;max-width:330px;box-shadow:0 5px 16px #234a7914}.hud b{display:block;margin-bottom:3px}.hud span{font-size:.88rem;color:#5c7189}@media(max-width:900px){.app{grid-template-columns:1fr}.stage{min-height:720px}}
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 <div class="app">
@@ -29,8 +37,8 @@
 <main class="stage"><div id="view"></div><div class="hud"><b>智慧型獨角仙飼育箱</b><span>拖曳模型檢查組裝、感測器與線材配置。</span></div></main>
 </div>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js';
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const wrap=document.querySelector('#view'),scene=new THREE.Scene();scene.background=new THREE.Color(0xf7fbff);
 const cam=new THREE.PerspectiveCamera(45,1,.1,5000);cam.position.set(360,280,420);
 const r=new THREE.WebGLRenderer({antialias:true});r.setPixelRatio(devicePixelRatio);wrap.appendChild(r.domElement);
