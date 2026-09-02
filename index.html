@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>獨角仙飼育箱 3D 模擬</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans TC",sans-serif;background:#f3f6fb;color:#203040}.app{display:grid;grid-template-columns:330px 1fr;min-height:100vh;gap:14px;padding:14px}.panel,.stage{background:#fff;border-radius:16px;box-shadow:0 10px 28px #274a7714}.panel{padding:18px;overflow:auto}.stage{position:relative;overflow:hidden;background:linear-gradient(#fbfdff,#eef4ff)}#view{position:absolute;inset:0}h1{font-size:1.25rem;margin:0 0 8px}h2{font-size:1rem;margin:18px 0 8px}.muted{color:#60758c;font-size:.92rem;line-height:1.5}.tag{display:inline-block;padding:4px 10px;border-radius:999px;background:#e9f2ff;color:#1762c8;font-weight:700;font-size:.84rem}.ctrl{margin:12px 0}.ctrl label{display:flex;justify-content:space-between;font-weight:700;font-size:.92rem;margin-bottom:5px}.ctrl input[type=range]{width:100%}.checks label{display:block;margin:8px 0;font-weight:600}button{border:0;border-radius:9px;padding:9px 11px;margin:4px 4px 0 0;background:#e6f0ff;color:#1758ad;font-weight:700;cursor:pointer}.hud{position:absolute;left:14px;top:14px;background:#ffffffdd;padding:10px 12px;border-radius:12px;max-width:330px;box-shadow:0 5px 16px #234a7914}.hud b{display:block;margin-bottom:3px}.hud span{font-size:.88rem;color:#5c7189}@media(max-width:900px){.app{grid-template-columns:1fr}.stage{min-height:720px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="panel">
+<h1>獨角仙飼育箱 3D 模擬</h1><span class="tag">200 × 200 × 300 mm / 3 mm 壓克力</span>
+<p class="muted">可旋轉、縮放、爆炸拆解；感測器在箱內，micro:bit 與電池在箱外。</p>
+<h2>操作</h2>
+<div class="ctrl"><label>爆炸距離 <span id="exv">0 mm</span></label><input id="explode" type="range" min="0" max="90" value="0"></div>
+<div class="ctrl"><label>感測器高度 <span id="sev">120 mm</span></label><input id="sensor" type="range" min="60" max="220" step="5" value="120"></div>
+<div class="ctrl"><label>飼養土高度 <span id="sov">80 mm</span></label><input id="soil" type="range" min="40" max="120" step="5" value="80"></div>
+<div class="checks">
+<label><input id="lid" type="checkbox"> 上蓋打開</label>
+<label><input id="soilOn" type="checkbox" checked> 顯示飼養土</label>
+<label><input id="cableOn" type="checkbox" checked> 顯示電線</label>
+<label><input id="elecOn" type="checkbox" checked> 顯示 micro:bit / 電池</label>
+</div>
+<button id="basic">基本版</button><button id="teach">爆炸教學版</button><button id="cam">重設視角</button>
+<h2>滑鼠</h2><p class="muted">左鍵旋轉、滾輪縮放、右鍵平移。</p>
+<h2>結構</h2><ul class="muted"><li>右後角電線保護槽</li><li>後板上緣 U 型出線缺口</li><li>左右上方通風孔</li><li>箱外電子固定板</li></ul>
+</aside>
+<main class="stage"><div id="view"></div><div class="hud"><b>智慧型獨角仙飼育箱</b><span>拖曳模型檢查組裝、感測器與線材配置。</span></div></main>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/controls/OrbitControls.js';
+const wrap=document.querySelector('#view'),scene=new THREE.Scene();scene.background=new THREE.Color(0xf7fbff);
+const cam=new THREE.PerspectiveCamera(45,1,.1,5000);cam.position.set(360,280,420);
+const r=new THREE.WebGLRenderer({antialias:true});r.setPixelRatio(devicePixelRatio);wrap.appendChild(r.domElement);
+const ctl=new OrbitControls(cam,r.domElement);ctl.enableDamping=true;ctl.target.set(0,120,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0xd9e6ff,1.2));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(200,400,200);scene.add(dl);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),new THREE.MeshPhongMaterial({color:0xeef4ff}));floor.rotation.x=-Math.PI/2;scene.add(floor);scene.add(new THREE.GridHelper(700,18,0xd9e7fb,0xeaf1fb));
+const glass=new THREE.MeshPhysicalMaterial({color:0xffffff,transparent:true,opacity:.23,transmission:.75,roughness:.08,thickness:1,side:THREE.DoubleSide});
+const lidMat=glass.clone(),soilMat=new THREE.MeshPhongMaterial({color:0x7d5b42}),sensorMat=new THREE.MeshPhongMaterial({color:0x19a184}),dark=new THREE.MeshPhongMaterial({color:0x222222}),gray=new THREE.MeshPhongMaterial({color:0x666666}),ventMat=new THREE.MeshPhongMaterial({color:0x597cf7}),guardMat=new THREE.MeshPhongMaterial({color:0xdbeaff,transparent:true,opacity:.28}),slotMat=new THREE.MeshPhongMaterial({color:0xe58f8f});
+const root=new THREE.Group();scene.add(root);const P={};
+function box(w,h,d,m){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m)}
+P.front=box(200,300,3,glass);P.back=box(200,300,3,glass);P.left=box(3,300,194,glass);P.right=box(3,300,194,glass);P.bottom=box(194,3,194,glass);P.lid=box(200,3,200,lidMat);root.add(P.front,P.back,P.left,P.right,P.bottom,P.lid);
+P.soil=new THREE.Group();P.soilBody=box(184,80,184,soilMat);P.soilTop=box(184,2,184,new THREE.MeshPhongMaterial({color:0x9a7759}));P.soil.add(P.soilBody,P.soilTop);root.add(P.soil);
+P.sensor=new THREE.Group();P.sensor.add(box(60,60,32,new THREE.MeshPhongMaterial({color:0x19a184,transparent:true,opacity:.22})));const core=box(20,20,8,sensorMat);core.position.z=18;P.sensor.add(core);for(let y of[-18,18])for(let i=0;i<4;i++){const s=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),sensorMat);s.position.set(-18+i*12,y,17);P.sensor.add(s)}root.add(P.sensor);
+P.guard=box(16,220,16,guardMat);P.slot=box(12,10,5,slotMat);root.add(P.guard,P.slot);
+P.vents=new THREE.Group();for(let row=0;row<3;row++)for(let i=0;i<5;i++){for(let side of[-1,1]){const v=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.6,3,12),ventMat);v.rotation.z=Math.PI/2;v.position.set(side*98.5,260-row*12,-55+i*25+(row%2?10:0));P.vents.add(v)}}root.add(P.vents);
+P.elec=new THREE.Group();P.elec.add(box(120,180,4,new THREE.MeshPhongMaterial({color:0xffffff,transparent:true,opacity:.65})));const mb=box(100,72,8,dark);mb.position.set(0,36,8);const bat=box(80,52,8,gray);bat.position.set(0,-42,8);P.elec.add(mb,bat);root.add(P.elec);
+P.cable=new THREE.Group();root.add(P.cable);function cable(y){P.cable.clear();const pts=[[70,y,76],[94,y+28,94],[94,286,94],[112,286,102],[150,250,128],[170,210,120]].map(a=>new THREE.Vector3(...a));P.cable.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0xc0392b})))}
+const $=id=>document.getElementById(id);function apply(){const ex=+$('explode').value,se=+$('sensor').value,so=+$('soil').value;$('exv').textContent=ex+' mm';$('sev').textContent=se+' mm';$('sov').textContent=so+' mm';P.front.position.set(0,150,-100-ex);P.back.position.set(0,150,100+ex);P.left.position.set(-100-ex,150,0);P.right.position.set(100+ex,150,0);P.bottom.position.set(0,1.5-ex*.4,0);if($('lid').checked){P.lid.position.set(-40-ex*.6,326+ex,-10);P.lid.rotation.set(.15,0,-.75)}else{P.lid.position.set(0,301.5+ex,0);P.lid.rotation.set(0,0,0)}P.soil.visible=$('soilOn').checked;P.soilBody.scale.y=so/80;P.soilBody.position.y=so/2;P.soilTop.position.y=so+1;P.sensor.position.set(40,se,68);P.guard.position.set(92,110,92);P.slot.position.set(88,292,98);P.elec.visible=$('elecOn').checked;P.elec.position.set(215+ex*.8,120,120);cable(se);P.cable.visible=$('cableOn').checked}
+['explode','sensor','soil','lid','soilOn','cableOn','elecOn'].forEach(x=>$(x).addEventListener('input',apply));
+$('basic').onclick=()=>{$('explode').value=0;$('sensor').value=120;$('soil').value=80;$('lid').checked=false;apply()};$('teach').onclick=()=>{$('explode').value=70;$('sensor').value=140;$('soil').value=95;$('lid').checked=true;apply()};$('cam').onclick=()=>{cam.position.set(360,280,420);ctl.target.set(0,120,0);ctl.update()};
+function resize(){const w=wrap.clientWidth,h=wrap.clientHeight;cam.aspect=w/h;cam.updateProjectionMatrix();r.setSize(w,h)}addEventListener('resize',resize);resize();apply();(function loop(){requestAnimationFrame(loop);ctl.update();r.render(scene,cam)})();
+</script>
+</body></html>
